@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Micah Josiah Mok</title>
+  <meta name="description" content="Projects by Micah Josiah Mok — robotics, machine learning, and interactive software.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0b;
+      --surface: #111113;
+      --surface-2: #17171a;
+      --line: rgba(255, 255, 255, 0.08);
+      --line-strong: rgba(255, 255, 255, 0.16);
+      --text: #f4f4f5;
+      --muted: #a1a1aa;
+      --faint: #71717a;
+      --pink: #ff007a;
+      --violet: #7a00ff;
+      --cyan: #00e5ff;
+      --grad: linear-gradient(135deg, var(--pink), var(--violet) 55%, var(--cyan));
+      --serif: 'Instrument Serif', Georgia, serif;
+      --sans: 'Inter', 'Helvetica Neue', system-ui, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, monospace;
+      --max: 1180px;
+      --gutter: clamp(16px, 4vw, 40px);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-weight: 400;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    ::selection { background: var(--violet); color: #fff; }
+
+    /* Custom cursor only on precise pointers */
+    @media (hover: hover) and (pointer: fine) {
+      body.has-cursor, body.has-cursor a, body.has-cursor button { cursor: none; }
+    }
+
+    /* ───────── Nav ───────── */
+    .nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px var(--gutter);
+      transition: background .4s, border-color .4s, backdrop-filter .4s;
+      border-bottom: 1px solid transparent;
+    }
+    .nav.scrolled {
+      background: rgba(10, 10, 11, 0.72);
+      backdrop-filter: blur(14px) saturate(140%);
+      -webkit-backdrop-filter: blur(14px) saturate(140%);
+      border-bottom-color: var(--line);
+    }
+    .nav-mark {
+      font-family: var(--serif);
+      font-size: 1.5rem;
+      letter-spacing: -0.01em;
+      line-height: 1;
+    }
+    .nav-mark i { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .nav-links { display: flex; gap: clamp(16px, 3vw, 32px); font-size: .875rem; color: var(--muted); }
+    .nav-links a { position: relative; transition: color .2s; }
+    .nav-links a:hover { color: var(--text); }
+    .nav-links a::after {
+      content: ''; position: absolute; left: 0; right: 0; bottom: -4px; height: 1px;
+      background: var(--grad); transform: scaleX(0); transform-origin: left; transition: transform .3s;
+    }
+    .nav-links a:hover::after { transform: scaleX(1); }
+
+    /* ───────── Hero ───────── */
+    .hero {
+      position: relative;
+      height: 100vh;
+      height: 100svh;
+      min-height: 560px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+    .reveal-bg {
+      position: absolute;
+      inset: 0;
+      background: var(--grad);
+      z-index: 1;
+      pointer-events: none;
+      -webkit-mask-image: radial-gradient(circle var(--size, 40px) at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+      mask-image: radial-gradient(circle var(--size, 40px) at var(--x, 50%) var(--y, 50%), black 0%, transparent 100%);
+    }
+    .hero-grain {
+      position: absolute; inset: 0; z-index: 2; pointer-events: none; opacity: .5;
+      background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+      background-size: 28px 28px;
+      -webkit-mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+      mask-image: radial-gradient(ellipse at center, black 20%, transparent 75%);
+    }
+    #water-canvas { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+
+    .hero-content {
+      position: relative;
+      z-index: 10;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 var(--gutter);
+      pointer-events: none;
+    }
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: .75rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .hero h1 {
+      font-family: var(--serif);
+      font-weight: 400;
+      font-size: clamp(3.2rem, 11vw, 9.5rem);
+      line-height: .92;
+      letter-spacing: -0.035em;
+      margin: 22px 0 26px;
+    }
+    .hero h1 em { font-style: italic; color: var(--muted); }
+    .hero-sub {
+      max-width: 34rem;
+      font-size: clamp(1rem, 1.6vw, 1.15rem);
+      font-weight: 300;
+      color: var(--muted);
+      margin: 0;
+    }
+    .hero-sub strong { color: var(--text); font-weight: 500; }
+    .hero-load > * { opacity: 0; transform: translateY(14px); animation: rise 1s cubic-bezier(.2,.7,.2,1) forwards; }
+    .hero-load > *:nth-child(2) { animation-delay: .12s; }
+    .hero-load > *:nth-child(3) { animation-delay: .24s; }
+    @keyframes rise { to { opacity: 1; transform: none; } }
+
+    .scroll-cue {
+      position: absolute; z-index: 10; left: 50%; bottom: 32px; transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      font-family: var(--mono); font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--faint);
+    }
+    .scroll-cue span { width: 1px; height: 44px; background: linear-gradient(var(--faint), transparent); position: relative; overflow: hidden; }
+    .scroll-cue span::after {
+      content: ''; position: absolute; left: 0; top: -40%; width: 1px; height: 40%;
+      background: var(--text); animation: drip 2.2s ease-in-out infinite;
+    }
+    @keyframes drip { to { top: 110%; } }
+
+    /* ───────── Sections ───────── */
+    section.block { padding: clamp(80px, 12vw, 150px) var(--gutter); }
+    .wrap { max-width: var(--max); margin: 0 auto; }
+    .section-head {
+      display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; flex-wrap: wrap;
+      margin-bottom: clamp(40px, 6vw, 72px);
+    }
+    .section-head h2 {
+      font-family: var(--serif); font-weight: 400;
+      font-size: clamp(2.6rem, 6vw, 4.5rem);
+      line-height: 1; letter-spacing: -0.03em; margin: 12px 0 0;
+    }
+    .section-head h2 em { font-style: italic; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: .08em; }
+
+    /* ───────── Featured ───────── */
+    .featured { display: grid; gap: clamp(20px, 3vw, 28px); }
+    .feature {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--surface);
+      overflow: hidden;
+      transition: border-color .4s, transform .5s cubic-bezier(.2,.7,.2,1);
+    }
+    .feature:nth-child(even) { grid-template-columns: 1fr 1.05fr; }
+    .feature:nth-child(even) .feature-art { order: 2; }
+    .feature:hover { border-color: var(--line-strong); }
+    .feature-art {
+      position: relative;
+      min-height: 360px;
+      background: radial-gradient(120% 90% at 30% 20%, #1c1530 0%, #0d0d10 60%);
+      border-right: 1px solid var(--line);
+      overflow: hidden;
+    }
+    .feature:nth-child(even) .feature-art { border-right: 0; border-left: 1px solid var(--line); }
+    .feature-art svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+    .feature-body { padding: clamp(28px, 4vw, 52px); display: flex; flex-direction: column; }
+    .meta {
+      display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+      font-family: var(--mono); font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--faint);
+    }
+    .meta .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--faint); }
+    .feature h3 {
+      font-family: var(--serif); font-weight: 400;
+      font-size: clamp(2rem, 3.6vw, 2.9rem);
+      line-height: 1.02; letter-spacing: -0.02em; margin: 18px 0 16px;
+    }
+    .feature p { color: var(--muted); margin: 0 0 14px; font-weight: 300; }
+    .feature p strong { color: var(--text); font-weight: 500; }
+    .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; padding: 0; list-style: none; }
+    .tags li {
+      font-family: var(--mono); font-size: .72rem; color: var(--muted);
+      padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); background: rgba(255,255,255,.02);
+    }
+    .links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: auto; padding-top: 28px; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      font-size: .85rem; font-weight: 500;
+      padding: 10px 16px; border-radius: 999px;
+      border: 1px solid var(--line-strong);
+      transition: background .25s, border-color .25s, color .25s;
+    }
+    .btn:hover { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .btn.primary { background: var(--text); color: var(--bg); border-color: var(--text); }
+    .btn.primary:hover { background: transparent; color: var(--text); }
+    .btn svg { width: 14px; height: 14px; }
+
+    /* Spotlight that follows the cursor on cards */
+    .spot::before {
+      content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 0; opacity: 0;
+      background: radial-gradient(500px circle at var(--mx, 50%) var(--my, 50%), rgba(122, 0, 255, .12), transparent 45%);
+      transition: opacity .4s;
+    }
+    .spot:hover::before { opacity: 1; }
+    .spot > * { position: relative; z-index: 1; }
+
+    /* Feature art animations */
+    .trail { stroke-dasharray: 2 7; animation: march 1.6s linear infinite; }
+    @keyframes march { to { stroke-dashoffset: -18; } }
+    .pulse { animation: pulse 2.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+    @keyframes pulse { 0%, 100% { opacity: .35; transform: scale(1); } 50% { opacity: 1; transform: scale(1.12); } }
+    .flow { stroke-dasharray: 6 8; animation: march 1.2s linear infinite; }
+    .draw { stroke-dasharray: 900; stroke-dashoffset: 900; animation: draw 5s ease-in-out infinite; }
+    @keyframes draw { 0% { stroke-dashoffset: 900; } 55%, 80% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -900; } }
+    .caption-swap text { opacity: 0; animation: swap 9s infinite; }
+    .caption-swap text:nth-child(2) { animation-delay: 3s; }
+    .caption-swap text:nth-child(3) { animation-delay: 6s; }
+    @keyframes swap { 0%, 30% { opacity: 1; } 34%, 100% { opacity: 0; } }
+
+    /* ───────── Filters + grid ───────── */
+    .more-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin: clamp(80px, 10vw, 120px) 0 28px; }
+    .more-head h3 { font-family: var(--serif); font-weight: 400; font-size: clamp(1.8rem, 3vw, 2.4rem); margin: 0; letter-spacing: -0.02em; }
+    .filters { display: flex; gap: 6px; flex-wrap: wrap; padding: 4px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); }
+    .filters button {
+      font: 500 .8rem var(--sans); color: var(--muted); background: transparent; border: 0;
+      padding: 8px 14px; border-radius: 999px; cursor: pointer; transition: color .2s, background .2s;
+    }
+    .filters button:hover { color: var(--text); }
+    .filters button.active { background: var(--text); color: var(--bg); }
+
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .card {
+      position: relative;
+      display: flex; flex-direction: column;
+      padding: 26px;
+      min-height: 280px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      overflow: hidden;
+      transition: border-color .35s, transform .45s cubic-bezier(.2,.7,.2,1), opacity .35s;
+    }
+    .card:hover { border-color: var(--line-strong); transform: translateY(-4px); }
+    .card.hidden { display: none; }
+    .card h4 { font-family: var(--serif); font-weight: 400; font-size: 1.75rem; line-height: 1.05; letter-spacing: -0.015em; margin: 16px 0 10px; }
+    .card p { color: var(--muted); font-size: .92rem; font-weight: 300; margin: 0 0 18px; }
+    .card .tags { margin-top: auto; }
+    .card .arrow {
+      position: absolute; top: 22px; right: 22px; width: 34px; height: 34px; border-radius: 50%;
+      display: grid; place-items: center; border: 1px solid var(--line);
+      color: var(--muted); transition: all .3s;
+    }
+    .card .arrow svg { width: 14px; height: 14px; transition: transform .3s; }
+    a.card:hover .arrow { background: var(--text); color: var(--bg); border-color: var(--text); }
+    a.card:hover .arrow svg { transform: rotate(-45deg); }
+    .card .lock { font-family: var(--mono); font-size: .65rem; letter-spacing: .08em; text-transform: uppercase; }
+
+    /* ───────── About ───────── */
+    .about { border-top: 1px solid var(--line); }
+    .about-grid { display: grid; grid-template-columns: 1fr 1.3fr; gap: clamp(32px, 6vw, 96px); align-items: start; }
+    .about-lede {
+      font-family: var(--serif); font-size: clamp(1.9rem, 3.4vw, 2.8rem); line-height: 1.15; letter-spacing: -0.015em; margin: 0;
+    }
+    .about-lede em { color: var(--muted); }
+    .about-text p { color: var(--muted); font-weight: 300; margin: 0 0 18px; font-size: 1.05rem; }
+    .about-text p strong { color: var(--text); font-weight: 500; }
+    .stack { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 22px; margin-top: 36px; padding-top: 30px; border-top: 1px solid var(--line); }
+    .stack h5 { font-family: var(--mono); font-weight: 500; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--faint); margin: 0 0 10px; }
+    .stack ul { list-style: none; margin: 0; padding: 0; font-size: .92rem; line-height: 1.9; }
+
+    /* ───────── Footer ───────── */
+    footer { padding: clamp(80px, 12vw, 140px) var(--gutter) 40px; border-top: 1px solid var(--line); position: relative; overflow: hidden; }
+    footer::before {
+      content: ''; position: absolute; left: 50%; top: 100%; width: 900px; height: 500px; transform: translate(-50%, -45%);
+      background: var(--grad); filter: blur(120px); opacity: .18; pointer-events: none;
+    }
+    .cta { font-family: var(--serif); font-size: clamp(2.8rem, 9vw, 7.5rem); line-height: .95; letter-spacing: -0.035em; margin: 18px 0 40px; }
+    .cta a { background: linear-gradient(currentColor, currentColor) 0 100% / 0 2px no-repeat; transition: background-size .5s; }
+    .cta a:hover { background-size: 100% 2px; }
+    .cta em { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; padding-right: .06em; }
+    .foot-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 16px; padding-top: 28px; margin-top: 60px; border-top: 1px solid var(--line); color: var(--faint); font-size: .85rem; position: relative; }
+    .foot-row a:hover { color: var(--text); }
+    .foot-links { display: flex; gap: 22px; }
+
+    /* ───────── Cursor ───────── */
+    .cursor-dot, .cursor-outline {
+      position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; border-radius: 50%;
+      opacity: 0; transition: opacity .3s, width .25s, height .25s, margin .25s, background-color .25s;
+    }
+    body.has-cursor .cursor-dot, body.has-cursor .cursor-outline { opacity: 1; }
+    .cursor-dot { width: 6px; height: 6px; margin: -3px 0 0 -3px; background: #fff; mix-blend-mode: difference; }
+    .cursor-outline { width: 36px; height: 36px; margin: -18px 0 0 -18px; border: 1px solid rgba(255,255,255,.35); }
+    body.cursor-hover .cursor-outline { width: 64px; height: 64px; margin: -32px 0 0 -32px; background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.5); }
+
+    /* ───────── Reveal ───────── */
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .9s cubic-bezier(.2,.7,.2,1), transform .9s cubic-bezier(.2,.7,.2,1); }
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* ───────── Responsive ───────── */
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+      .feature, .feature:nth-child(even) { grid-template-columns: 1fr; }
+      .feature:nth-child(even) .feature-art { order: 0; border-left: 0; }
+      .feature-art { min-height: 260px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .feature:nth-child(even) .feature-art { border-bottom: 1px solid var(--line); }
+      .about-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 620px) {
+      .grid { grid-template-columns: 1fr; }
+      .nav-links a:not(.keep) { display: none; }
+      .filters { border-radius: 16px; }
+      .card { min-height: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal, .hero-load > * { opacity: 1; transform: none; }
+      .draw { stroke-dashoffset: 0; }
+      .caption-swap text:first-child { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav" id="nav">
+    <a href="#top" class="nav-mark">M<i>j</i>M</a>
+    <div class="nav-links">
+      <a href="#work" class="keep">Work</a>
+      <a href="#about">About</a>
+      <a href="#contact" class="keep">Contact</a>
+    </div>
+  </nav>
+
+  <header class="hero" id="top">
+    <div class="reveal-bg"></div>
+    <div class="hero-grain"></div>
+    <canvas id="water-canvas"></canvas>
+
+    <div class="hero-content hero-load">
+      <div class="eyebrow">Portfolio · 2025 — 2026</div>
+      <h1>Micah <em>Josiah</em> Mok</h1>
+      <p class="hero-sub">Computer Science &amp; Cognitive Science at <strong>UC Berkeley</strong>. I build robots that react, agents that reason, and tools that make ideas easier to see.</p>
+    </div>
+
+    <a href="#work" class="scroll-cue" aria-label="Scroll to work">Scroll<span></span></a>
+  </header>
+
+  <main>
+    <section class="block" id="work">
+      <div class="wrap">
+        <div class="section-head reveal">
+          <div>
+            <div class="eyebrow">01 — Selected work</div>
+            <h2>Things I've <em>built</em></h2>
+          </div>
+        </div>
+
+        <div class="featured">
+
+          <!-- Roboball -->
+          <article class="feature spot reveal">
+            <div class="feature-art" aria-hidden="true">
+              <svg viewBox="0 0 400 360" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="#ff007a"/><stop offset=".55" stop-color="#7a00ff"/><stop offset="1" stop-color="#00e5ff"/>
+                  </linearGradient>
+                  <radialGradient id="ballGlow"><stop offset="0" stop-color="#fff"/><stop offset=".5" stop-color="#ff7ac0"/><stop offset="1" stop-color="#ff007a" stop-opacity="0"/></radialGradient>
+                </defs>
+                <g stroke="rgba(255,255,255,.05)">
+                  <path d="M0 60H400M0 120H400M0 180H400M0 240H400M0 300H400M80 0V360M160 0V360M240 0V360M320 0V360"/>
+                </g>
+                <path id="arc" d="M200 290 Q 200 -20 200 290" fill="none"/>
+                <path d="M120 292 Q 200 -40 280 292" fill="none" stroke="url(#g1)" stroke-width="1.5" class="trail" opacity=".8"/>
+                <path d="M150 292 Q 200 40 250 292" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="1" class="trail"/>
+                <circle r="14" fill="url(#ballGlow)">
+                  <animateMotion dur="2.2s" repeatCount="indefinite" path="M200 278 C 200 100, 200 40, 200 40 C 200 40, 200 100, 200 278" keyTimes="0;1" calcMode="spline" keySplines=".2 .6 .4 1"/>
+                </circle>
+                <g>
+                  <rect x="160" y="290" width="80" height="6" rx="3" fill="#f4f4f5"/>
+                  <path d="M200 296 L200 318 L150 340 L90 340" stroke="#71717a" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                  <circle cx="200" cy="318" r="6" fill="#17171a" stroke="#a1a1aa" stroke-width="2"/>
+                  <circle cx="150" cy="340" r="6" fill="#17171a" stroke="#a1a1aa" stroke-width="2"/>
+                </g>
+                <g font-family="JetBrains Mono, monospace" font-size="9" fill="#71717a">
+                  <text x="24" y="34">/ball_pose</text>
+                  <text x="24" y="48" fill="#a1a1aa">z = v₀t − ½gt²</text>
+                  <text x="290" y="34">t_strike</text>
+                  <text x="290" y="48" fill="#00e5ff">0.412 s</text>
+                </g>
+              </svg>
+            </div>
+            <div class="feature-body">
+              <div class="meta"><span>EECS 106A</span><span class="dot"></span><span>Spring 2026</span><span class="dot"></span><span>Team of 4</span></div>
+              <h3>Roboball</h3>
+              <p>A UR7e robot arm that juggles a beach ball with a custom paddle end-effector. An Intel RealSense depth camera tracks the ball, a ballistic model predicts where it will fall, and a strike planner moves the paddle there in time.</p>
+              <p>I worked on <strong>trajectory prediction</strong> and parts of the <strong>planning and control pipeline</strong>.</p>
+              <ul class="tags"><li>ROS 2</li><li>Python</li><li>RealSense</li><li>Inverse kinematics</li><li>PID control</li></ul>
+              <div class="links">
+                <a class="btn primary" href="https://www.youtube.com/watch?v=4F8yc4VLmjg" target="_blank" rel="noopener">
+                  <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5v11l9-5.5z"/></svg>Watch video
+                </a>
+                <a class="btn" href="https://github.com/indrajababu/roboball" target="_blank" rel="noopener">Code ↗</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- EmailAgent -->
+          <article class="feature spot reveal">
+            <div class="feature-art" aria-hidden="true">
+              <svg viewBox="0 0 400 360" preserveAspectRatio="xMidYMid meet">
+                <g stroke="rgba(255,255,255,.05)">
+                  <path d="M0 60H400M0 120H400M0 180H400M0 240H400M0 300H400M80 0V360M160 0V360M240 0V360M320 0V360"/>
+                </g>
+                <g fill="none" stroke-width="1.4">
+                  <path d="M88 120 H 172" stroke="#7a00ff" class="flow"/>
+                  <path d="M228 120 H 312" stroke="#00e5ff" class="flow"/>
+                  <path d="M200 148 V 212" stroke="#ff007a" class="flow"/>
+                  <path d="M312 148 Q 330 250 228 240" stroke="rgba(255,255,255,.3)" class="flow"/>
+                </g>
+                <g font-family="JetBrains Mono, monospace" font-size="9.5" text-anchor="middle">
+                  <rect x="20" y="100" width="68" height="40" rx="10" fill="#17171a" stroke="rgba(255,255,255,.18)"/>
+                  <text x="54" y="124" fill="#a1a1aa">INBOX</text>
+                  <rect x="172" y="100" width="56" height="48" rx="24" fill="#1c1530" stroke="#7a00ff"/>
+                  <circle cx="200" cy="124" r="30" fill="none" stroke="#7a00ff" class="pulse"/>
+                  <text x="200" y="121" fill="#f4f4f5">Qwen</text>
+                  <text x="200" y="133" fill="#a1a1aa" font-size="8">0.5B</text>
+                  <rect x="312" y="100" width="72" height="40" rx="10" fill="#17171a" stroke="rgba(0,229,255,.5)"/>
+                  <text x="348" y="118" fill="#00e5ff">FREE?</text>
+                  <text x="348" y="130" fill="#71717a" font-size="8">calendar</text>
+                  <rect x="150" y="212" width="100" height="40" rx="10" fill="#17171a" stroke="rgba(255,0,122,.6)"/>
+                  <text x="200" y="230" fill="#ff7ac0">HOLD_FOR_ME</text>
+                  <text x="200" y="243" fill="#71717a" font-size="8">→ CONFIRMED</text>
+                </g>
+                <g font-family="JetBrains Mono, monospace" font-size="8.5" fill="#71717a">
+                  <text x="24" y="300">state + Δ = new state</text>
+                  <text x="24" y="316" fill="#a1a1aa">crm.row("sarah") ← hold 11/03 14:00</text>
+                </g>
+              </svg>
+            </div>
+            <div class="feature-body">
+              <div class="meta"><span>Personal project</span><span class="dot"></span><span>Fall 2026</span><span class="dot"></span><span>In progress</span></div>
+              <h3>EmailAgent</h3>
+              <p>A private, fully local email triage and scheduling system. A small open-source LLM only classifies intent; plain Python handles the parts that need to be right — free/busy checks, date math, and state transitions.</p>
+              <p>Gmail, Google Calendar, and a <strong>person-centric CRM in Sheets</strong> stay in sync through a scheduling state machine that tracks each back-and-forth.</p>
+              <ul class="tags"><li>LangGraph</li><li>Qwen2.5</li><li>Gmail API</li><li>Calendar API</li><li>Pub/Sub</li></ul>
+              <div class="links">
+                <a class="btn" href="https://github.com/mokingyou/emailagent" target="_blank" rel="noopener">Code ↗</a>
+              </div>
+            </div>
+          </article>
+
+          <!-- Animated lectures -->
+          <article class="feature spot reveal">
+            <div class="feature-art" aria-hidden="true">
+              <svg viewBox="0 0 400 360" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                  <linearGradient id="g3" x1="0" x2="1"><stop offset="0" stop-color="#ff007a"/><stop offset=".5" stop-color="#7a00ff"/><stop offset="1" stop-color="#00e5ff"/></linearGradient>
+                </defs>
+                <rect x="40" y="56" width="320" height="200" rx="12" fill="#0b0b0d" stroke="rgba(255,255,255,.14)"/>
+                <g stroke="rgba(255,255,255,.06)"><path d="M60 156 H340 M200 76 V236"/></g>
+                <path class="draw" fill="none" stroke="url(#g3)" stroke-width="2.2" d="M60 156 C 90 70, 120 70, 150 156 S 210 242, 240 156 S 300 70, 340 156"/>
+                <g font-family="Instrument Serif, serif" font-style="italic" font-size="18" fill="#f4f4f5">
+                  <text x="62" y="92">softmax(QKᵀ/√d)·V</text>
+                </g>
+                <g class="caption-swap" font-family="Inter, sans-serif" font-size="11" fill="#a1a1aa" text-anchor="middle">
+                  <text x="200" y="232">“Attention lets each token look at every other.”</text>
+                  <text x="200" y="232">“La atención permite que cada token mire a los demás.”</text>
+                  <text x="200" y="232">“注意力让每个词元关注所有其他词元。”</text>
+                </g>
+                <g>
+                  <rect x="40" y="272" width="320" height="4" rx="2" fill="rgba(255,255,255,.08)"/>
+                  <rect x="40" y="272" width="190" height="4" rx="2" fill="url(#g3)"/>
+                  <circle cx="230" cy="274" r="6" fill="#f4f4f5"/>
+                </g>
+                <g font-family="JetBrains Mono, monospace" font-size="9" fill="#71717a">
+                  <text x="40" y="304">lecture.mp4 → storyboard.json → manim → voiceover</text>
+                </g>
+              </svg>
+            </div>
+            <div class="feature-body">
+              <div class="meta"><span>CS 288 final project</span><span class="dot"></span><span>Spring 2026</span></div>
+              <h3>Animated Lectures</h3>
+              <p>An LLM pipeline that turns a recorded lecture into a narrated, 3Blue1Brown-style explainer. It retrieves the relevant parts of the lecture, writes a storyboard, generates <strong>Manim</strong> code for each scene, then adds a synthesized voiceover with translated subtitles.</p>
+              <ul class="tags"><li>Python</li><li>Manim</li><li>RAG</li><li>ElevenLabs</li><li>DeepL</li></ul>
+              <div class="links">
+                <a class="btn" href="https://github.com/mokingyou/cs288-final-project" target="_blank" rel="noopener">Code ↗</a>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- More projects -->
+        <div class="more-head reveal">
+          <h3>More projects</h3>
+          <div class="filters" role="tablist" aria-label="Filter projects">
+            <button class="active" data-filter="all">All</button>
+            <button data-filter="ml">AI / ML</button>
+            <button data-filter="web">Web</button>
+            <button data-filter="systems">Systems</button>
+          </div>
+        </div>
+
+        <div class="grid" id="grid">
+          <a class="card spot reveal" data-cat="ml" href="https://github.com/mokingyou/61a-bot" target="_blank" rel="noopener">
+            <div class="meta"><span>Research · 2026</span></div>
+            <span class="arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+            <h4>61A Knowledge Tracing</h4>
+            <p>A pipeline that pulls the code for each subproblem out of student homework, tags it with an LLM knowledge-component classifier, and stores it in SQLite to see how understanding changes over a semester.</p>
+            <ul class="tags"><li>Python</li><li>LLMs</li><li>SQLite</li></ul>
+          </a>
+
+          <a class="card spot reveal" data-cat="ml" href="https://github.com/RahulBirCodes/bluey" target="_blank" rel="noopener">
+            <div class="meta"><span>Deep learning · Fall 2025</span></div>
+            <span class="arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+            <h4>Bluey</h4>
+            <p>Experiments comparing Muon and manifold-Muon optimizers against Adam on transformers trained for in-context learning, with reproducible hyperparameter sweeps and checkpointing.</p>
+            <ul class="tags"><li>PyTorch</li><li>Optimizers</li><li>W&amp;B</li></ul>
+          </a>
+
+          <a class="card spot reveal" data-cat="web ml" href="https://github.com/mokingyou/exploRMS" target="_blank" rel="noopener">
+            <div class="meta"><span>Visualization · Dec 2025</span></div>
+            <span class="arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+            <h4>exploRMS</h4>
+            <p>An interactive React app for seeing how weight initialization and matrix shape change activation norms in a matrix multiply. Built to make a dry derivation easy to feel.</p>
+            <ul class="tags"><li>React</li><li>Linear algebra</li></ul>
+          </a>
+
+          <a class="card spot reveal" data-cat="web" href="https://github.com/mokingyou/autoadventurers" target="_blank" rel="noopener">
+            <div class="meta"><span>CS 160 · Fall 2025</span></div>
+            <span class="arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+            <h4>AutoAdventurers</h4>
+            <p>A web app for exploring the SF Bay Area: discover places, compare ways to get there, search by vibe, and share your own experiences. Designed through user research and usability testing.</p>
+            <ul class="tags"><li>React</li><li>Node.js</li><li>UX research</li></ul>
+          </a>
+
+          <a class="card spot reveal" data-cat="ml" href="https://github.com/mokingyou/cs288a3" target="_blank" rel="noopener">
+            <div class="meta"><span>CS 288 · Spring 2026</span></div>
+            <span class="arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+            <h4>Retrieval QA</h4>
+            <p>A retrieval-augmented question answering system: a custom web crawler builds the corpus, FAISS indexes the chunks, and an LLM answers with the passages it found.</p>
+            <ul class="tags"><li>RAG</li><li>FAISS</li><li>Crawling</li></ul>
+          </a>
+
+          <a class="card spot reveal" data-cat="ml" href="https://github.com/mokingyou/cs288a2" target="_blank" rel="noopener">
+            <div class="meta"><span>CS 288 · Spring 2026</span></div>
+            <span class="arrow"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span>
+            <h4>Transformer from Scratch</h4>
+            <p>A transformer language model built piece by piece — tokenizer, attention, training loop — and trained end to end.</p>
+            <ul class="tags"><li>PyTorch</li><li>Tokenization</li><li>Language modeling</li></ul>
+          </a>
+
+          <div class="card spot reveal" data-cat="systems">
+            <div class="meta"><span>CS 61C · Spring 2025</span></div>
+            <span class="arrow lock" title="Course code is private">⌂</span>
+            <h4>CS61CPU</h4>
+            <p>A pipelined RISC-V processor built gate by gate in Logisim — datapath, control logic, and hazard handling.</p>
+            <ul class="tags"><li>RISC-V</li><li>Logisim</li><li>Digital logic</li></ul>
+          </div>
+
+          <div class="card spot reveal" data-cat="systems ml">
+            <div class="meta"><span>CS 61C · Spring 2025</span></div>
+            <span class="arrow lock" title="Course code is private">⌂</span>
+            <h4>CS61Classify</h4>
+            <p>A neural-network digit classifier written entirely in RISC-V assembly: matrix multiply, ReLU, argmax, and file I/O by hand.</p>
+            <ul class="tags"><li>RISC-V assembly</li><li>MNIST</li></ul>
+          </div>
+
+          <div class="card spot reveal" data-cat="web">
+            <div class="meta"><span>Game design · 2026</span></div>
+            <span class="arrow lock" title="In design">✦</span>
+            <h4>RANK</h4>
+            <p>A party game about guessing secret hierarchies. Each player gets a hidden rank and must invent an answer that fits it; everyone then tries to put the answers in order.</p>
+            <ul class="tags"><li>Game design</li><li>5–10 players</li></ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="block about" id="about">
+      <div class="wrap about-grid">
+        <div class="reveal">
+          <div class="eyebrow">02 — About</div>
+          <p class="about-lede" style="margin-top:18px">How people think, and how to build machines that <em>help</em>.</p>
+        </div>
+        <div class="about-text reveal">
+          <p>I'm a senior studying <strong>Computer Science</strong> and <strong>Cognitive Science</strong> at UC Berkeley. My work moves between robots, language models, and interfaces, and it usually starts with the same question: what would make this easier for a person to understand?</p>
+          <p>Lately that has meant teaching a robot arm to juggle, building small local agents that don't hallucinate your calendar, and turning lectures into animations.</p>
+          <div class="stack">
+            <div><h5>Languages</h5><ul><li>Python</li><li>TypeScript</li><li>C / RISC-V</li><li>Java</li></ul></div>
+            <div><h5>ML &amp; AI</h5><ul><li>PyTorch</li><li>LangGraph</li><li>RAG / FAISS</li><li>Manim</li></ul></div>
+            <div><h5>Robotics &amp; Web</h5><ul><li>ROS 2</li><li>RealSense</li><li>React</li><li>Bun</li></ul></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer id="contact">
+    <div class="wrap">
+      <div class="eyebrow reveal">03 — Contact</div>
+      <p class="cta reveal">Let's make <em>something</em><br><a href="https://github.com/mokingyou" target="_blank" rel="noopener">together →</a></p>
+      <div class="foot-row">
+        <span>© <span id="year">2026</span> Micah Josiah Mok</span>
+        <div class="foot-links">
+          <a href="https://github.com/mokingyou" target="_blank" rel="noopener">GitHub</a>
+          <a href="#top">Back to top ↑</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <div class="cursor-dot"></div>
+  <div class="cursor-outline"></div>
+
+  <script>
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+    const hero = document.querySelector('.hero');
+    const revealBg = document.querySelector('.reveal-bg');
+    const dot = document.querySelector('.cursor-dot');
+    const outline = document.querySelector('.cursor-outline');
+    const canvas = document.getElementById('water-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let mouseX = innerWidth / 2, mouseY = innerHeight / 2;
+    let outlineX = mouseX, outlineY = mouseY;
+    let currentMaskSize = 40;
+    let ripples = [];
+    let lastRippleTime = 0;
+    let lastMove = 0;
+    let heroVisible = true;
+
+    function resizeCanvas() {
+      const dpr = Math.min(devicePixelRatio || 1, 2);
+      canvas.width = hero.clientWidth * dpr;
+      canvas.height = hero.clientHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function setLight(x, y) {
+      revealBg.style.setProperty('--x', `${x}px`);
+      revealBg.style.setProperty('--y', `${y}px`);
+    }
+
+    function addRipple(x, y) {
+      const now = performance.now();
+      if (now - lastRippleTime > 50) {
+        ripples.push({ x, y, radius: 5, alpha: 0.6 });
+        lastRippleTime = now;
+      }
+    }
+
+    function onPointer(clientX, clientY) {
+      mouseX = clientX; mouseY = clientY;
+      lastMove = performance.now();
+      const r = hero.getBoundingClientRect();
+      const hx = clientX - r.left, hy = clientY - r.top;
+      if (hy >= 0 && hy <= r.height) {
+        setLight(hx, hy);
+        addRipple(hx, hy);
+      }
+    }
+
+    addEventListener('mousemove', e => {
+      if (finePointer) document.body.classList.add('has-cursor');
+      onPointer(e.clientX, e.clientY);
+    });
+    addEventListener('touchmove', e => {
+      const t = e.touches[0];
+      if (t) onPointer(t.clientX, t.clientY);
+    }, { passive: true });
+    document.addEventListener('mouseleave', () => document.body.classList.remove('has-cursor'));
+
+    // Grow the cursor ring over interactive things
+    document.querySelectorAll('a, button').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+    });
+
+    new IntersectionObserver(([e]) => { heroVisible = e.isIntersecting; }).observe(hero);
+
+    let prevLightX = innerWidth / 2, prevLightY = innerHeight / 2;
+    function animate(t) {
+      // Cursor follower
+      dot.style.transform = `translate(${mouseX}px, ${mouseY}px)`;
+      const dx = mouseX - outlineX, dy = mouseY - outlineY;
+      outlineX += dx * 0.15; outlineY += dy * 0.15;
+      const distance = Math.hypot(dx, dy);
+      const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+      const sx = 1 + Math.min(distance * 0.012, 0.8);
+      const sy = Math.max(1 - distance * 0.004, 0.55);
+      outline.style.transform = `translate(${outlineX}px, ${outlineY}px) rotate(${angle}deg) scale(${sx}, ${sy})`;
+
+      if (heroVisible) {
+        let speed = distance;
+        // When idle (or on touch), let the light wander on its own
+        if (!reduceMotion && t - lastMove > 2500) {
+          const w = hero.clientWidth, h = hero.clientHeight;
+          const lx = w / 2 + Math.cos(t / 2600) * w * 0.28;
+          const ly = h / 2 + Math.sin(t / 1900) * h * 0.22;
+          speed = Math.hypot(lx - prevLightX, ly - prevLightY) * 9;
+          prevLightX = lx; prevLightY = ly;
+          setLight(lx, ly);
+          if (Math.random() < 0.12) addRipple(lx, ly);
+        }
+
+        const target = Math.min(10 + speed * 3, 175);
+        currentMaskSize += (target - currentMaskSize) * 0.1;
+        revealBg.style.setProperty('--size', `${currentMaskSize}px`);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (const p of ripples) {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+          ctx.strokeStyle = `rgba(255, 255, 255, ${p.alpha})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          p.radius += 2.5;
+          p.alpha -= 0.015;
+        }
+        ripples = ripples.filter(p => p.alpha > 0);
+      }
+      requestAnimationFrame(animate);
+    }
+    requestAnimationFrame(animate);
+
+    // Nav background after scrolling past the top
+    const nav = document.getElementById('nav');
+    const onScroll = () => nav.classList.toggle('scrolled', scrollY > 40);
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    // Reveal on scroll
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach((el, i) => {
+      if (el.classList.contains('card')) el.style.transitionDelay = `${(i % 3) * 70}ms`;
+      io.observe(el);
+    });
+
+    // Card spotlight follows the cursor
+    document.querySelectorAll('.spot').forEach(el => {
+      el.addEventListener('pointermove', e => {
+        const r = el.getBoundingClientRect();
+        el.style.setProperty('--mx', `${e.clientX - r.left}px`);
+        el.style.setProperty('--my', `${e.clientY - r.top}px`);
+      });
+    });
+
+    // Project filters
+    const buttons = document.querySelectorAll('.filters button');
+    const cards = document.querySelectorAll('#grid .card');
+    buttons.forEach(btn => btn.addEventListener('click', () => {
+      buttons.forEach(b => b.classList.toggle('active', b === btn));
+      const f = btn.dataset.filter;
+      cards.forEach(c => {
+        const show = f === 'all' || c.dataset.cat.split(' ').includes(f);
+        c.classList.toggle('hidden', !show);
+        if (show) c.classList.add('in');
+      });
+    }));
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
